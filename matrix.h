@@ -46,4 +46,8 @@ void scalar_vector(Vector* V, double k);
 void print_vector(const Vector* v);
 void print_matrix(const Matrix* M);
 
+//1. Calcular la media de cada columna de una matriz
+void mean_columns(const Matrix* M, int rows, int cols, Vector* mean);
+// 3. Calcular la desviacion estandar de cada columna de una matriz
+Vector* calculate_std_deviation(const Matrix* M);
 #endif

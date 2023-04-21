@@ -243,3 +243,43 @@ void print_matrix(const Matrix* M) {
     }
     printf("]\n");
 }
+
+//1. Calcular la media de cada columna de una matriz
+void mean_columns(const Matrix* M, int rows, int cols, Vector* mean) {
+    for (int j = 0; j < cols; ++j) {
+        double sum = 0.0;
+        for (int i = 0; i < rows; ++i) {
+            sum += M->elements[i][j];
+        }
+        mean->elements[j] = sum / rows;
+    }
+}
+
+// 3. Calcular la desviacion estandar de cada columna de una matriz
+Vector* calculate_std_deviation(const Matrix* M) {
+    if (M == NULL) {
+        fprintf(stderr, "Null pointer passed as argument.\n");
+        return NULL;
+    }
+
+    Vector* std_deviation = create_vector(M->cols);
+
+    for (int j = 0; j < M->cols; ++j) {
+        double mean = 0.0;
+        for (int i = 0; i < M->rows; ++i) {
+            mean += M->elements[i][j];
+        }
+        mean /= M->rows;
+
+        double variance = 0.0;
+        for (int i = 0; i < M->rows; ++i) {
+            double diff = M->elements[i][j] - mean;
+            variance += diff * diff;
+        }
+        variance /= M->rows;
+
+        std_deviation->elements[j] = sqrt(variance);
+    }
+
+    return std_deviation;
+}
