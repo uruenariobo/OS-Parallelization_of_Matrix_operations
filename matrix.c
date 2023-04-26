@@ -5,6 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include <float.h>
+#include <pthread.h>
 
 Vector* create_vector(int size) {
     Vector* v = calloc(1, sizeof(Vector));
@@ -244,42 +245,110 @@ void print_matrix(const Matrix* M) {
     printf("]\n");
 }
 
-//1. Calcular la media de cada columna de una matriz
-void mean_columns(const Matrix* M, int rows, int cols, Vector* mean) {
-    for (int j = 0; j < cols; ++j) {
-        double sum = 0.0;
-        for (int i = 0; i < rows; ++i) {
-            sum += M->elements[i][j];
-        }
-        mean->elements[j] = sum / rows;
+typedef struct ThreadData ThreadData;
+
+struct ThreadData {
+    const Matrix* M;
+    Vector* col_means;
+    int col_index;
+};
+
+void* compute_col_mean(void* arg) {
+    ThreadData* data = (ThreadData*)arg;
+    const Matrix* M = data->M;
+    Vector* col_means = data->col_means;
+    int col_index = data->col_index;
+
+    double sum = 0.0;
+    for (int i = 0; i < M->rows; i++) {
+        sum += M->elements[i][col_index];
     }
+    col_means->elements[col_index] = sum / M->rows;
+
+    pthread_exit(NULL);
 }
 
-// 3. Calcular la desviacion estandar de cada columna de una matriz
-Vector* calculate_std_deviation(const Matrix* M) {
-    if (M == NULL) {
-        fprintf(stderr, "Null pointer passed as argument.\n");
-        return NULL;
+Vector* matrix_col_mean_parallel(const Matrix* M) {
+    Vector* col_means = create_vector(M->cols);
+
+    pthread_t threads[M->cols];
+    ThreadData thread_data[M->cols];
+
+    for (int i = 0; i < M->cols; i++) {
+        thread_data[i].M = M;
+        thread_data[i].col_means = col_means;
+        thread_data[i].col_index = i;
+        pthread_create(&threads[i], NULL, compute_col_mean, (void*)&thread_data[i]);
     }
 
-    Vector* std_deviation = create_vector(M->cols);
+    for (int i = 0; i < M->cols; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    return col_means;
+}
+
+typedef struct ThreadData1 ThreadData1;
+struct ThreadData1 {
+    Matrix* M;
+    int col;
+    double result;
+};
+
+Vector* matrix_col_vrz(const Matrix* M) {
+    Vector* variance = create_vector(M->cols);
 
     for (int j = 0; j < M->cols; ++j) {
-        double mean = 0.0;
-        for (int i = 0; i < M->rows; ++i) {
-            mean += M->elements[i][j];
-        }
-        mean /= M->rows;
+        double sum = 0.0;
+        double sum_sq = 0.0;
 
-        double variance = 0.0;
         for (int i = 0; i < M->rows; ++i) {
-            double diff = M->elements[i][j] - mean;
-            variance += diff * diff;
+            double x = M->elements[i][j];
+            sum += x;
+            sum_sq += x * x;
         }
-        variance /= M->rows;
 
-        std_deviation->elements[j] = sqrt(variance);
+        double mean = sum / M->rows;
+        variance->elements[j] = sum_sq / M->rows - mean * mean;
+    }
+    return variance;
+}
+
+struct ThreadArgs {
+    Matrix* M;
+    Vector* variances;
+    int col;
+};
+
+void* compute_column_variance(void* arg) {
+    struct ThreadArgs* targs = (struct ThreadArgs*)arg;
+    double sum = 0.0, sq_sum = 0.0;
+    for (int i = 0; i < targs->M->rows; ++i) {
+        double x = targs->M->elements[i][targs->col];
+        sum += x;
+        sq_sum += x * x;
+    }
+    double mean = sum / targs->M->rows;
+    double variance = sq_sum / targs->M->rows - mean * mean;
+    targs->variances->elements[targs->col] = variance;
+    return NULL;
+}
+
+Vector* matrix_col_vrz_parallel(const Matrix* M) {
+    Vector* variances = create_vector(M->cols);
+
+    pthread_t threads[M->cols];
+    struct ThreadArgs targs[M->cols];
+    for (int i = 0; i < M->cols; ++i) {
+        targs[i].M = M;
+        targs[i].variances = variances;
+        targs[i].col = i;
+        pthread_create(&threads[i], NULL, compute_column_variance, &targs[i]);
     }
 
-    return std_deviation;
+    for (int i = 0; i < M->cols; ++i) {
+        pthread_join(threads[i], NULL);
+    }
+
+    return variances;
 }

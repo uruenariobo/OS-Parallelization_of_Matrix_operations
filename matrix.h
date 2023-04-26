@@ -34,11 +34,9 @@ Vector* dot_vector_matrix(const Vector* v, const Matrix* M);
 Matrix* add_matrix(const Matrix* M, const Matrix* N);
 Matrix* dot_matrix(const Matrix* M, const Matrix* N);
 
-Vector* matrix_col_mean(const Matrix* M);
 Vector* matrix_col_sum(const Matrix* M);
 //Vector* matrix_col_max(const Matrix* M);
 //Vector* matrix_col_min(const Matrix* M);
-//Vector* matrix_col_vrz(const Matrix* M);
 //Vector* matrix_col_std(const Matrix* M);
 void scalar_matrix(Matrix* M, double k);
 void scalar_vector(Vector* V, double k);
@@ -47,7 +45,12 @@ void print_vector(const Vector* v);
 void print_matrix(const Matrix* M);
 
 //1. Calcular la media de cada columna de una matriz
-void mean_columns(const Matrix* M, int rows, int cols, Vector* mean);
-// 3. Calcular la desviacion estandar de cada columna de una matriz
-Vector* calculate_std_deviation(const Matrix* M);
+Vector* matrix_col_mean(const Matrix* M);
+Vector* matrix_col_mean_parallel(const Matrix* M);
+
+//2. Calcular la varianza de cada columna de una matriz
+Vector* matrix_col_vrz(const Matrix* M);
+Vector* matrix_col_vrz_parallel(const Matrix* M);
+
+
 #endif
