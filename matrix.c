@@ -283,3 +283,12 @@ Vector* calculate_std_deviation(const Matrix* M) {
 
     return std_deviation;
 }
+
+// 7. Multiplicar un escalar por una matriz
+void scalar_matrix(const Matrix* M, int rows, int cols, double k, Matrix* R) {
+    for (int i = 0; i < rows; ++i) {
+       for (int j = 0; j < cols; ++j) {
+            R->elements[i][j] = M->elements[i][j] * k;
+       }
+    }
+}
