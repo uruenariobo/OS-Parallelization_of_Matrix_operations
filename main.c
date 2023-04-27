@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "matrix.h"
 #include "matrix.c"
+#include "scalar_matrix.c"
 
 int main(){
 
@@ -28,6 +29,15 @@ int main(){
 
 	// Imprime el vector en la consola
 	print_vector(mean);
+
+	printf("Punto 7:\n");
+	Matrix* Matrix2 = create_matrix(12, 4);
+	init_matrix_rand(Matrix2);
+	print_matrix(Matrix2);
+
+	scalar_matrix_concurrent(Matrix2, 2.0);
+
+	print_matrix(Matrix2);
 
 	print_vector(calculate_std_deviation(M));
 }
