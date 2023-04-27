@@ -50,6 +50,4 @@ void print_matrix(const Matrix* M);
 void mean_columns(const Matrix* M, int rows, int cols, Vector* mean);
 // 3. Calcular la desviacion estandar de cada columna de una matriz
 Vector* calculate_std_deviation(const Matrix* M);
-// 7. Multiplicar un escalar por una matriz
-void scalar_matrix(const Matrix* M, int rows, int cols, double k, Matrix* R);
 #endif
