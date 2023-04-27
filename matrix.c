@@ -245,6 +245,8 @@ void print_matrix(const Matrix* M) {
     printf("]\n");
 }
 
+
+//1. Calcular la media de cada columna de una matriz
 typedef struct ThreadData ThreadData;
 
 struct ThreadData {
@@ -288,6 +290,7 @@ Vector* matrix_col_mean_parallel(const Matrix* M) {
     return col_means;
 }
 
+//2. Calcular la varianza de cada columna de una matriz
 typedef struct ThreadData1 ThreadData1;
 struct ThreadData1 {
     Matrix* M;
@@ -351,4 +354,119 @@ Vector* matrix_col_vrz_parallel(const Matrix* M) {
     }
 
     return variances;
+}
+
+//3. Calcular la desviacion estandar de cada columna de una matriz
+Vector* matrix_col_std(const Matrix* matrix) {
+    Vector* variances = matrix_col_vrz(matrix);
+    Vector* standard_deviations = create_vector(variances->size);
+    for (int j = 0; j < matrix->cols; j++) {
+        standard_deviations->elements[j] = sqrt(variances->elements[j]);
+    }
+    return standard_deviations;
+}
+
+
+typedef struct {
+    Matrix* matrix;
+    int column;
+    double* result;
+} ColumnData;
+
+
+void* calculate_standard_deviation(void* data) {
+    Vector* v = (Vector*)data;
+    for (int i = 0; i < v->size; ++i) {
+        v->elements[i] = sqrt(v->elements[i]);
+    }
+    pthread_exit(NULL);
+}
+
+Vector* matrix_col_std_parallel(const Matrix* matrix) {
+    Vector* variances = matrix_col_vrz_parallel(matrix);
+    Vector* standard_deviations = create_vector(variances->size);
+    copy_vector(standard_deviations, variances);
+    pthread_t thread;
+    pthread_create(&thread, NULL, calculate_standard_deviation, standard_deviations);
+    pthread_join(thread, NULL);
+    free_vector(variances);
+    return standard_deviations;
+}
+
+//9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
+Matrix* normalize_matrix(const Matrix* M) {
+    Matrix* result = create_matrix(M->rows, M->cols);
+    Vector* means = matrix_col_mean(M);
+    Vector* stds = matrix_col_std(M);
+
+    for (int j = 0; j < M->cols; ++j) {
+        double mean = means->elements[j];
+        double std = stds->elements[j];
+
+        for (int i = 0; i < M->rows; ++i) {
+            double x = M->elements[i][j];
+            result->elements[i][j] = (x - mean) / std;
+        }
+    }
+
+    free_vector(means);
+    free_vector(stds);
+
+    return result;
+}
+
+
+
+typedef struct {
+    Matrix* M;
+    Vector* means;
+    Vector* stds;
+    int col_idx;
+} ColumnNormalizeData;
+
+void* normalize_column(void* data) {
+    ColumnNormalizeData* d = (ColumnNormalizeData*) data;
+    Matrix* M = d->M;
+    Vector* means = d->means;
+    Vector* stds = d->stds;
+    int col_idx = d->col_idx;
+
+    for (int i = 0; i < M->rows; ++i) {
+        double x = M->elements[i][col_idx];
+        double u = means->elements[col_idx];
+        double r = stds->elements[col_idx];
+        M->elements[i][col_idx] = (x - u) / r;
+    }
+
+    pthread_exit(NULL);
+}
+
+Matrix* normalize_matrix_parallel(Matrix* M) {
+    Vector* means=matrix_col_mean_parallel(M);
+    Vector* stds=matrix_col_std_parallel(M);
+    int num_cols = M->cols;
+    pthread_t threads[num_cols];
+    ColumnNormalizeData thread_data[num_cols];
+
+    for (int i = 0; i < num_cols; ++i) {
+        thread_data[i].M = M;
+        thread_data[i].means = means;
+        thread_data[i].stds = stds;
+        thread_data[i].col_idx = i;
+        int result = pthread_create(&threads[i], NULL, normalize_column, (void*) &thread_data[i]);
+        if (result != 0) {
+            fprintf(stderr, "Failed to create thread for column %d. Error code: %d\n", i, result);
+            return NULL;
+        }
+    }
+
+    for (int i = 0; i < num_cols; ++i) {
+        int result = pthread_join(threads[i], NULL);
+        if (result != 0) {
+            fprintf(stderr, "Failed to join thread for column %d. Error code: %d\n", i, result);
+            return NULL;
+        }
+    }
+
+    return M;
 }

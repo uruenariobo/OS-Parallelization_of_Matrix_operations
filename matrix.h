@@ -37,7 +37,7 @@ Matrix* dot_matrix(const Matrix* M, const Matrix* N);
 Vector* matrix_col_sum(const Matrix* M);
 //Vector* matrix_col_max(const Matrix* M);
 //Vector* matrix_col_min(const Matrix* M);
-//Vector* matrix_col_std(const Matrix* M);
+
 void scalar_matrix(Matrix* M, double k);
 void scalar_vector(Vector* V, double k);
 
@@ -52,5 +52,11 @@ Vector* matrix_col_mean_parallel(const Matrix* M);
 Vector* matrix_col_vrz(const Matrix* M);
 Vector* matrix_col_vrz_parallel(const Matrix* M);
 
+//3. Calcular la desviacion estandar de cada columna de una matriz
+Vector* matrix_col_std(const Matrix* M);
+Vector* matrix_col_std_parallel(const Matrix* M);
 
+//9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
+Matrix* normalize_matrix(const Matrix* M);
+Matrix* normalize_matrix_parallel(Matrix* matrix);
 #endif
