@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "matrix.h"
 #include "matrix.c"
-#include "scalar_matrix.c"
 #include <pthread.h>
 #include <time.h>
 
@@ -97,7 +96,7 @@ int main(){
 	init_matrix_rand(Matrix2);
 	print_matrix(Matrix2);
 
-	scalar_matrix_concurrent(Matrix2, 2.0);
+	scalar_matrix_parallel(Matrix2, 2.0);
 
 	print_matrix(Matrix2);
 

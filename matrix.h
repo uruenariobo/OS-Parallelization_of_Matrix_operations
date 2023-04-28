@@ -4,59 +4,65 @@
 #include <stdint.h>
 
 typedef struct Vector Vector;
-struct Vector {
+struct Vector
+{
     int size;
-    double* elements;
+    double *elements;
 };
 
 typedef struct Matrix Matrix;
-struct Matrix {
+struct Matrix
+{
     int rows;
     int cols;
-    double** elements;
+    double **elements;
 };
 
-Vector* create_vector(int size);
-Vector* create_vector_from_file(const char* file_path, int size);
-Matrix* create_matrix(int rows, int cols);
-Matrix* create_matrix_from_file(const char* file_path, int rows, int cols);
+Vector *create_vector(int size);
+Vector *create_vector_from_file(const char *file_path, int size);
+Matrix *create_matrix(int rows, int cols);
+Matrix *create_matrix_from_file(const char *file_path, int rows, int cols);
 
-void init_matrix_rand(Matrix* M);
-void init_vector_rand(Vector* V);
-void copy_matrix(Matrix* dst, const Matrix* src);
-void copy_vector(Vector* dst, const Vector* src);
+void init_matrix_rand(Matrix *M);
+void init_vector_rand(Vector *V);
+void copy_matrix(Matrix *dst, const Matrix *src);
+void copy_vector(Vector *dst, const Vector *src);
 
-void free_vector(Vector* v);
-void free_matrix(Matrix* M);
+void free_vector(Vector *v);
+void free_matrix(Matrix *M);
 
-Vector* add_vector(const Vector* a, const Vector* b);
-Vector* dot_vector_matrix(const Vector* v, const Matrix* M);
-Matrix* add_matrix(const Matrix* M, const Matrix* N);
-Matrix* dot_matrix(const Matrix* M, const Matrix* N);
+Vector *add_vector(const Vector *a, const Vector *b);
+Vector *dot_vector_matrix(const Vector *v, const Matrix *M);
+Matrix *add_matrix(const Matrix *M, const Matrix *N);
+Matrix *dot_matrix(const Matrix *M, const Matrix *N);
 
-Vector* matrix_col_sum(const Matrix* M);
+Vector *matrix_col_sum(const Matrix *M);
 //Vector* matrix_col_max(const Matrix* M);
 //Vector* matrix_col_min(const Matrix* M);
 
-void scalar_matrix(Matrix* M, double k);
-void scalar_vector(Vector* V, double k);
+void scalar_vector(Vector *V, double k);
 
-void print_vector(const Vector* v);
-void print_matrix(const Matrix* M);
+void print_vector(const Vector *v);
+void print_matrix(const Matrix *M);
 
 //1. Calcular la media de cada columna de una matriz
-Vector* matrix_col_mean(const Matrix* M);
-Vector* matrix_col_mean_parallel(const Matrix* M);
+Vector *matrix_col_mean(const Matrix *M);
+Vector *matrix_col_mean_parallel(const Matrix *M);
 
 //2. Calcular la varianza de cada columna de una matriz
-Vector* matrix_col_vrz(const Matrix* M);
-Vector* matrix_col_vrz_parallel(const Matrix* M);
+Vector *matrix_col_vrz(const Matrix *M);
+Vector *matrix_col_vrz_parallel(const Matrix *M);
 
 //3. Calcular la desviacion estandar de cada columna de una matriz
-Vector* matrix_col_std(const Matrix* M);
-Vector* matrix_col_std_parallel(const Matrix* M);
+Vector *matrix_col_std(const Matrix *M);
+Vector *matrix_col_std_parallel(const Matrix *M);
+
+//7. Calcular la multiplicación de una matriz por un escalar
+void scalar_matrix(Matrix *M, double k);
+void *scalar_matrix_thread(void *arg);
+void scalar_matrix_parallel(Matrix *M, double k);
 
 //9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-Matrix* normalize_matrix(const Matrix* M);
-Matrix* normalize_matrix_parallel(Matrix* matrix);
+Matrix *normalize_matrix(const Matrix *M);
+Matrix *normalize_matrix_parallel(Matrix *matrix);
 #endif
