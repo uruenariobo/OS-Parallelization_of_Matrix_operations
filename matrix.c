@@ -393,8 +393,234 @@ Vector* matrix_col_std_parallel(const Matrix* matrix) {
     return standard_deviations;
 }
 
+// 4.Calcular el valor mínimo y el valor máximo de cada columna de una matriz 
+
+
+// Minimos
+
+Vector* matrix_col_min(const Matrix* M){
+    Vector* v = create_vector(M->cols);
+    for (int i = 0; i < M->cols; ++i) {
+        double min = M->elements[0][i];
+        for (int j = 0; j < M->rows; ++j) {
+            if (min > M->elements[j][i]) {
+                min = M->elements[j][i];
+            }
+        }
+        v->elements[i] = min;
+    }
+    return v; 
+}
+
+typedef struct {
+    struct Matrix* matrix;
+    pthread_mutex_t* mutex;
+    Vector* min_values;
+    int start_col;
+    int end_col;
+} MinArgs;
+
+typedef struct {
+    pthread_mutex_t mutex;
+    double min_value;
+} Min;
+
+void* min_cols_thread(void* arg){
+    MinArgs* args = (MinArgs*) arg;
+
+    for (int i = 0; i < args->matrix->cols; ++i) {
+        double min = args->matrix->elements[0][i];
+        for (int j = 0; j < args->matrix->rows; ++j) {
+            if (min > args->matrix->elements[j][i]) {
+                pthread_mutex_lock(args->mutex);
+                min = args->matrix->elements[j][i];
+                pthread_mutex_unlock(args->mutex);
+            }
+        }
+        pthread_mutex_lock(args->mutex);
+        args->min_values->elements[i] = min;
+        pthread_mutex_unlock(args->mutex);
+    }
+    pthread_exit(NULL);
+    return NULL;
+}
+
+// Maximos 
+
+Vector* matrix_col_max(const Matrix* M){
+    Vector* v = create_vector(M->cols);
+    for (int i = 0; i < M->cols; ++i) {
+        double max = M->elements[0][i];
+        for (int j = 0; j < M->rows; ++j) {
+            if (max < M->elements[j][i]) {
+                max = M->elements[j][i];
+            }
+        }
+        v->elements[i] = max;
+    }
+    return v; 
+}
+
+typedef struct {
+    struct Matrix* matrix;
+    pthread_mutex_t* mutex;
+    Vector* max_values;
+    int start_col;
+    int end_col;
+} MaxArgs;
+
+typedef struct {
+    pthread_mutex_t mutex;
+    double max_value;
+} Max;
+
+void* max_cols_thread(void* arg){
+    MaxArgs* args = (MaxArgs*) arg;
+
+    for (int i = 0; i < args->matrix->cols; ++i) {
+        double max = args->matrix->elements[0][i];
+        for (int j = 0; j < args->matrix->rows; ++j) {
+            if (max < args->matrix->elements[j][i]) {
+                pthread_mutex_lock(args->mutex);
+                max = args->matrix->elements[j][i];
+                pthread_mutex_unlock(args->mutex);
+            }
+        }
+        pthread_mutex_lock(args->mutex);
+        args->max_values->elements[i] = max;
+        pthread_mutex_unlock(args->mutex);
+    }
+    pthread_exit(NULL);
+    return NULL;
+}
+
+void min_max(Matrix* matrix){
+    Vector *max_col = matrix_col_max(matrix);
+    Vector *min_col = matrix_col_min(matrix);
+    printf("Los valores mínimos de la matriz: \n");
+    print_vector(min_col);
+    printf("Los valores maximos de la matriz: \n");
+    print_vector(max_col);
+}
+
+// Calculo de valores minimos y valores maximos con paralelismo
+
+void min_max_parallel(Matrix* matrix, int num_threads){
+
+    pthread_t threads[num_threads];
+
+    MinArgs min_args[num_threads];
+    MaxArgs max_args[num_threads];
+
+    Vector* min_values = create_vector(matrix->cols);
+    Vector* max_values = create_vector(matrix->cols);
+
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    const int pthread_size = matrix->cols / num_threads;
+
+    int start_col = 0;
+    for (int i = 0; i < num_threads; ++i){
+        int end_col = start_col + pthread_size;
+        if (i == num_threads - 1){
+            end_col = matrix->cols;
+        }
+
+        min_args[i] = (MinArgs){.start_col = start_col, .end_col = end_col, .matrix = matrix, .min_values = min_values, .mutex = &mutex};
+        max_args[i] = (MaxArgs){.start_col = start_col, .end_col = end_col, .matrix = matrix, .max_values = max_values, .mutex = &mutex};
+
+        pthread_create(&threads[i], NULL, min_cols_thread, &min_args[i]);
+        start_col = end_col;
+        pthread_create(&threads[i], NULL, max_cols_thread, &max_args[i]);
+        start_col = end_col;
+    }
+
+    for (int j = 0; j < num_threads; j++) {
+        pthread_join(threads[j], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+    printf("Los valores mínimos de la matriz: \n");
+    print_vector(min_values);
+    printf("Los valores maximos de la matriz: \n");
+    print_vector(max_values);
+}
+
+int min_max_by_columns(int rows, int cols, int num_threads) {
+    Matrix* matrix = create_matrix(rows, cols);
+    init_matrix_rand(matrix);
+    print_matrix(matrix);
+    min_max_parallel(matrix, num_threads);
+    return 0;
+}
+
+
+// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
+
+typedef struct {
+    struct Matrix* matrix;
+    Vector* min;
+    Vector* max;
+    int start_row;
+    int end_row;
+    pthread_mutex_t* lock;
+} ColumnNormalizeData;
+
+void* normalize_matrix(void* cnd) {
+   ColumnNormalizeData* args = (ColumnNormalizeData*) cnd;
+    for (int i = args->start_row; i < args->end_row; ++i) {
+        for (int j = 0; j < args->matrix->cols; ++j) {
+            pthread_mutex_lock(args->lock);
+            args->matrix->elements[i][j] = (args->matrix->elements[i][j] - args->min->elements[j]) / (args->max->elements[j] - args->min->elements[j]);
+            pthread_mutex_unlock(args->lock);
+        }
+    }
+
+    return NULL;
+}
+
+void normalize_matrix_parallel(Matrix* matrix, Vector* min, Vector* max, int n) {
+
+    pthread_mutex_t lock;
+    pthread_mutex_init(&lock, NULL);
+    pthread_t threads[n];
+
+    ColumnNormalizeData args[n];
+
+    int pthread_size = matrix->rows / n;
+    int extra_rows = matrix->rows % n;
+    
+    for (int i = 0; i < n; ++i) {
+        args[i].matrix = matrix;
+        args[i].min = min;
+        args[i].max = max;
+        args[i].lock = &lock;
+
+        int start_row = i * pthread_size;
+        int end_row = (i + 1) * pthread_size;
+
+        if (i == n - 1) {
+            end_row += extra_rows;
+        }
+        args[i].start_row = start_row;
+        args[i].end_row = end_row;
+
+        pthread_create(&threads[i], NULL, normalize_matrix, &args[i]);
+    }
+
+    for (int i = 0; i < n; ++i) {
+        pthread_join(threads[i], NULL);
+    }
+
+    pthread_mutex_destroy(&lock);
+    print_matrix(matrix);
+    free_matrix(matrix);
+}
+
+
+
 //9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-Matrix* normalize_matrix(const Matrix* M) {
+Matrix* normalize_matrix_2(const Matrix* M) {
     Matrix* result = create_matrix(M->rows, M->cols);
     Vector* means = matrix_col_mean(M);
     Vector* stds = matrix_col_std(M);
@@ -416,16 +642,15 @@ Matrix* normalize_matrix(const Matrix* M) {
 }
 
 
-
 typedef struct {
     Matrix* M;
     Vector* means;
     Vector* stds;
     int col_idx;
-} ColumnNormalizeData;
+} ColumnNormalizeData2;
 
 void* normalize_column(void* data) {
-    ColumnNormalizeData* d = (ColumnNormalizeData*) data;
+    ColumnNormalizeData2* d = (ColumnNormalizeData2*) data;
     Matrix* M = d->M;
     Vector* means = d->means;
     Vector* stds = d->stds;
@@ -441,12 +666,12 @@ void* normalize_column(void* data) {
     pthread_exit(NULL);
 }
 
-Matrix* normalize_matrix_parallel(Matrix* M) {
+Matrix* normalize_matrix_parallel_2(Matrix* M) {
     Vector* means=matrix_col_mean_parallel(M);
     Vector* stds=matrix_col_std_parallel(M);
     int num_cols = M->cols;
     pthread_t threads[num_cols];
-    ColumnNormalizeData thread_data[num_cols];
+    ColumnNormalizeData2 thread_data[num_cols];
 
     for (int i = 0; i < num_cols; ++i) {
         thread_data[i].M = M;
