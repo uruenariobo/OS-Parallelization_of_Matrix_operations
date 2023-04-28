@@ -33,7 +33,6 @@ void free_matrix(Matrix *M);
 
 Vector *add_vector(const Vector *a, const Vector *b);
 Vector *dot_vector_matrix(const Vector *v, const Matrix *M);
-Matrix *add_matrix(const Matrix *M, const Matrix *N);
 Matrix *dot_matrix(const Matrix *M, const Matrix *N);
 
 Vector *matrix_col_sum(const Matrix *M);
@@ -56,6 +55,11 @@ Vector *matrix_col_vrz_parallel(const Matrix *M);
 //3. Calcular la desviacion estandar de cada columna de una matriz
 Vector *matrix_col_std(const Matrix *M);
 Vector *matrix_col_std_parallel(const Matrix *M);
+
+//5. Calcular la suma de dos Matrices
+Matrix *add_matrix(const Matrix *M, const Matrix *N);
+void *add_rows_thread(void *arg);
+Matrix *add_matrix_parallel(const Matrix *M, const Matrix *N, int n_threads);
 
 //7. Calcular la multiplicación de una matriz por un escalar
 void scalar_matrix(Matrix *M, double k);

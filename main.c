@@ -82,6 +82,30 @@ int main()
 	printf("%f\n", cpu_time_used_parallel);
 	print_vector(std);
 
+	//5. Calcular la suma de dos matrices
+	printf("\nSuma de dos matrices:\n");
+	Matrix *Matrix1 = create_matrix(4, 4);
+	init_matrix_rand(Matrix1);
+
+	start = clock();
+	Matrix *sum = add_matrix(M, Matrix1);
+	end = clock();
+
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	//Imprime el tiempo de ejecución secuencial en segundos
+	printf("%f\n", cpu_time_used_parallel);
+	print_matrix(sum);
+
+	start = clock();
+	Matrix *sum_parallel = add_matrix_parallel(M, Matrix1,4);
+	end = clock();
+
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	//Imprime el tiempo de ejecución paralela en segundos
+	printf("%f\n", cpu_time_used_parallel);
+	print_matrix(sum_parallel);
+
+
 	//7. Calcular la multiplicación de una matriz por un escalar
 	printf("\nMultiplicar de una matriz por un escalar:\n");
 	Matrix *Matrix2 = create_matrix(12, 4);

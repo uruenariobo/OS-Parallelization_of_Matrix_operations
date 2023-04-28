@@ -179,26 +179,6 @@ Vector *dot_vector_matrix(const Vector *v, const Matrix *M)
     return r;
 }
 
-Matrix *add_matrix(const Matrix *M, const Matrix *N)
-{
-    if (M->rows != N->rows || M->cols != N->cols)
-    {
-        fprintf(stderr, "Invalid size. (%d, %d) and (%d, %d)\n", M->rows, M->cols, N->rows, N->cols);
-        return NULL;
-    }
-
-    Matrix *R = create_matrix(M->rows, M->cols);
-    for (int i = 0; i < M->rows; ++i)
-    {
-        for (int j = 0; j < M->cols; ++j)
-        {
-            R->elements[i][j] = M->elements[i][j] + N->elements[i][j];
-        }
-    }
-
-    return R;
-}
-
 Matrix *dot_matrix(const Matrix *M, const Matrix *N)
 {
     if (M->cols != N->rows)
@@ -459,6 +439,94 @@ Vector *matrix_col_std_parallel(const Matrix *matrix)
     pthread_join(thread, NULL);
     free_vector(variances);
     return standard_deviations;
+}
+
+//5. Calcular la suma de dos matrices
+typedef struct ThreadArgsMatrixSum ThreadArgsMatrixSum;
+struct ThreadArgsMatrixSum
+{
+    const Matrix *M;
+    const Matrix *N;
+    Matrix *R;
+    int *row_counter;
+};
+
+Matrix *add_matrix(const Matrix *M, const Matrix *N)
+{
+    if (M->rows != N->rows || M->cols != N->cols)
+    {
+        fprintf(stderr, "Invalid size. (%d, %d) and (%d, %d)\n", M->rows, M->cols, N->rows, N->cols);
+        return NULL;
+    }
+
+    Matrix *R = create_matrix(M->rows, M->cols);
+    for (int i = 0; i < M->rows; ++i)
+    {
+        for (int j = 0; j < M->cols; ++j)
+        {
+            R->elements[i][j] = M->elements[i][j] + N->elements[i][j];
+        }
+    }
+
+    return R;
+}
+
+void *add_rows_thread(void *arg)
+{
+    ThreadArgsMatrixSum *args = (ThreadArgsMatrixSum *)arg;
+    const Matrix *M = args->M;
+    const Matrix *N = args->N;
+    Matrix *R = args->R;
+    int *row_counter = args->row_counter;
+
+    int row;
+    while (1)
+    {
+        row = (*row_counter)++;
+        if (row >= M->rows)
+        {
+            break;
+        }
+
+        for (int j = 0; j < M->cols; ++j)
+        {
+            R->elements[row][j] = M->elements[row][j] + N->elements[row][j];
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+Matrix *add_matrix_parallel(const Matrix *M, const Matrix *N, int n_threads)
+{
+    if (M->rows != N->rows || M->cols != N->cols)
+    {
+        fprintf(stderr, "Invalid size. (%d, %d) and (%d, %d)\n", M->rows, M->cols, N->rows, N->cols);
+        return NULL;
+    }
+
+    Matrix *R = create_matrix(M->rows, M->cols);
+
+    int row_counter = 0;
+    ThreadArgsMatrixSum args[n_threads];
+
+    pthread_t threads[n_threads];
+    for (int i = 0; i < n_threads; ++i)
+    {
+        args[i].M = M;
+        args[i].N = N;
+        args[i].R = R;
+        args[i].row_counter = &row_counter;
+
+        pthread_create(&threads[i], NULL, add_rows_thread, (void *)&args[i]);
+    }
+
+    for (int i = 0; i < n_threads; ++i)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
+    return R;
 }
 
 //7. Calcular la multiplicación de una matriz por un escalar
