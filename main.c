@@ -82,6 +82,48 @@ int main()
 	printf("%f\n", cpu_time_used_parallel);
 	print_vector(std);
 
+	//4. Calcular el valor mínimo y el valor máximo de cada columna de una matriz
+	printf("\nCalcular el valor mínimo y el valor máximo de cada columna de una matriz\n");
+
+	printf("\nEjecución secuencial:\n");
+	start = clock();
+    min_max(M);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo secuencial:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
+	printf("\nEjecución paralela:\n");
+	start = clock();
+    min_max_parallel(M, 4);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo paralelo:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
+	// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
+	printf("\nNormalizar una matriz con los valores max y min:\n");
+    Vector* max_numbers = matrix_col_max(M);
+    Vector* min_numbers = matrix_col_min(M);
+
+	printf("\nEjecución secuencial:\n");
+	start = clock();
+	Matrix* normalize_max_min = M;
+    normalize_matrix(normalize_max_min, min_numbers, max_numbers);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo secuencial:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
+	printf("\nEjecución paralela:\n");
+	start = clock();
+	Matrix* normalize_max_min2 = M;
+    normalize_matrix_parallel(normalize_max_min2, min_numbers ,max_numbers, 4);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo paralelo:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
 	//5. Calcular la suma de dos matrices
 	printf("\nSuma de dos matrices:\n");
 	Matrix *Matrix1 = create_matrix(4, 4);
@@ -133,6 +175,7 @@ int main()
 	printf("\nNormalizar una matriz columna por columna:\n");
 	//Comienza ejecución secuencial
 	start = clock();
+	Matrix* normal = normalize_matrix_2(M);
 	Matrix *normal = normalize_matrix(M);
 	end = clock();
 	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -141,7 +184,7 @@ int main()
 
 	//Comienza ejecución paralela
 	start = clock();
-	normal = normalize_matrix_parallel(M);
+	normal = normalize_matrix_parallel_2(M);
 	end = clock();
 	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
 	//Imprime el tiempo de ejecución paralela en segundos
