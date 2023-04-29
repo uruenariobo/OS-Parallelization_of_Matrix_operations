@@ -1,3 +1,6 @@
+
+
+
 #include "matrix.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -248,6 +251,105 @@ void scalar_matrix(Matrix *M, double k)
         }
     }
 }
+
+
+
+void matrix_init(matrix *mat, int rows, int cols) {
+    mat->rows = rows;
+    mat->cols = cols;
+
+    mat->data = (float**) malloc(rows * sizeof(float*));
+    for (int i = 0; i < rows; i++) {
+        mat->data[i] = (float*) malloc(cols * sizeof(float));
+    }
+}
+
+
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto 
+void matrix_product(double *A, double *B, double *C, int m, int n, int p) {
+    int i, j, k;
+    double sum;
+
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < p; j++) {
+            sum = 0;
+            for (k = 0; k < n; k++) {
+                sum += A[i*n+k] * B[k*p+j];
+            }
+            C[i*p+j] = sum;
+        }
+    }
+}
+
+matrix *create_matrix2(int rows, int cols) {
+    matrix *mat = (matrix*) malloc(sizeof(matrix));
+    mat->rows = rows;
+    mat->cols = cols;
+    mat->data = (float**) malloc(rows * sizeof(float*));
+    for (int i = 0; i < rows; i++) {
+        mat->data[i] = (float*) malloc(cols * sizeof(float));
+    }
+    return mat;
+}
+
+void free_matrix2(matrix *mat) {
+    for (int i = 0; i < mat->rows; i++) {
+        free(mat->data[i]);
+    }
+    free(mat->data);
+    free(mat);
+}
+
+void random_fill_matrix(matrix *mat) {
+    srand(time(NULL));
+    for (int i = 0; i < mat->rows; i++) {
+        for (int j = 0; j < mat->cols; j++) {
+            mat->data[i][j] = ((float)rand()/(float)(RAND_MAX)) * 10.0;
+        }
+    }
+}
+
+void print_matrix2(matrix *mat) {
+    for (int i = 0; i < mat->rows; i++) {
+        for (int j = 0; j < mat->cols; j++) {
+            printf("%.2f ", mat->data[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void matrix_product_seq(matrix *mat1, matrix *mat2, matrix *result) {
+    for (int i = 0; i < mat1->rows; i++) {
+        for (int j = 0; j < mat2->cols; j++) {
+            result->data[i][j] = 0.0;
+            for (int k = 0; k < mat1->cols; k++) {
+                result->data[i][j] += mat1->data[i][k] * mat2->data[k][j];
+            }
+        }
+    }
+}
+
+void matrix_product_par(matrix *mat1, matrix *mat2, matrix *result) {
+    int i, j, k;
+    #pragma omp parallel for shared(mat1,mat2,result) private(i,j,k) 
+    for (i = 0; i < mat1->rows; i++) {
+        for (j = 0; j < mat2->cols; j++) {
+            float sum = 0.0;
+            for (k = 0; k < mat1->cols; k++) {
+                sum += mat1->data[i][k] * mat2->data[k][j];
+            }
+            result->data[i][j] = sum;
+        }
+    }
+}
+
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto
+/// Producto punto -  Producto punto - Producto punto - Producto punto
 
 void print_vector(const Vector *v)
 {

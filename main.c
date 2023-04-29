@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <time.h>
 
+
+
 int main()
 {
 
@@ -123,6 +125,88 @@ int main()
 	//Imprime el tiempo de ejecución paralela en segundos
 	printf("%f\n", cpu_time_used_parallel);
 	print_matrix(sum_parallel);
+
+
+	//6. Calcular el producto punto
+	printf("\n6. Producto punto entre matrices:\n");
+	
+    //int n = 1000, i, j;
+    //double cpu_time_used_secuencial, cpu_time_used_parallel;
+
+    // Create matrices
+    //matrix* mat1 = create_matrix2(n, n);
+    //matrix* mat2 = create_matrix2(n, n);
+
+    // Initialize matrices
+    //matrix_init(&mat1, size, size);
+    //matrix_init(&mat2, size, size);
+
+    // Calculate product sequentially
+    //matrix* result_seq = matrix_product_seq(&mat1, &mat2, &result_seq);
+    //cpu_time_used_secuencial = ((double) (clock())) / CLOCKS_PER_SEC;
+
+    // Calculate product in parallel
+	
+    //matrix* result_par = matrix_product_par(&mat1, &mat2, &result_par);
+    //cpu_time_used_parallel = ((double) (clock())) / CLOCKS_PER_SEC;
+
+    // Print matrices and result
+    //printf("Matrix 1:\n");
+    //for (i = 0; i < n; i++) {
+    //    for (j = 0; j < n; j++) {
+    //        printf("%lf ", mat1->data[i][j]);
+    //    }
+    //    printf("\n");
+    //}
+
+	//printf("\nMatrix 2:\n");
+    //for (i = 0; i < n; i++) {
+    //    for (j = 0; j < n; j++) {
+    //        printf("%lf ", mat2->data[i][j]);
+    //    }
+    //    printf("\n");
+    //}
+
+    // Verify result
+    //for (i = 0; i < n; i++) {
+    //    for (j = 0; j < n; j++) {
+    //        if (fabs(result_seq->data[i][j] - result_par->data[i][j]) > 0.001) {
+    //            printf("Error: matrices are not equal\n");
+    //            return -1;
+    //        }
+    //    }
+    //}
+
+	//printf("\nResultado del producto secuencial:\n");
+    //for (i = 0; i < n; i++) {
+    //    for (j = 0; j < n; j++) {
+    //        printf("%lf ", result_seq->data[i][j]);
+    //    }
+    //    printf("\n");
+    //}
+
+    //printf("\nResultado del producto en paralelo:\n");
+    //for (i = 0; i < n; i++) {
+    //    for (j = 0; j < n; j++) {
+    //        printf("%lf ", result_par->data[i][j]);
+    //    }
+    //    printf("\n");
+    //}
+
+    // Print results
+    //printf("Time taken for sequential execution: %lf sec.\n", cpu_time_used_secuencial);
+    //printf("Time taken for parallel execution: %lf sec.\n", cpu_time_used_parallel);
+
+
+    // Free memory
+	//free_matrix2(&mat1);
+    //free_matrix2(&mat2);
+    //free_matrix2(&result_seq);
+    //free_matrix2(&result_par);
+	////aaaaaaaaaq
+
+	
+
 
 	//7. Calcular la multiplicación de una matriz por un escalar
 	printf("\n7. Multiplicar de una matriz por un escalar:\n");

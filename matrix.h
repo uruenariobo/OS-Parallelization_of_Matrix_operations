@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+
+
 typedef struct Vector Vector;
 struct Vector
 {
@@ -40,6 +42,8 @@ Vector* matrix_col_sum(const Matrix* M);
 
 void scalar_vector(Vector *V, double k);
 
+void matrix_product(double *A, double *B, double *C, int m, int n, int p);
+
 void print_vector(const Vector *v);
 void print_matrix(const Matrix *M);
 
@@ -70,6 +74,24 @@ int min_max_by_columns(int rows, int cols, int num_threads);
 Matrix *add_matrix(const Matrix *M, const Matrix *N);
 void *add_rows_thread(void *arg);
 Matrix *add_matrix_parallel(const Matrix *M, const Matrix *N, int n_threads);
+
+
+//6. Calcular producto punto
+typedef struct {
+    int rows;
+    int cols;
+    float **data;
+} matrix;
+
+matrix *create_matrix2(int rows, int cols);
+void free_matrix2(matrix *mat);
+void random_fill_matrix(matrix *mat);
+void print_matrix2(matrix *mat);
+void matrix_product_seq(matrix *mat1, matrix *mat2, matrix *result);
+void matrix_product_par(matrix *mat1, matrix *mat2, matrix *result);
+//
+
+
 
 //7. Calcular la multiplicación de una matriz por un escalar
 void scalar_matrix(Matrix *M, double k);
