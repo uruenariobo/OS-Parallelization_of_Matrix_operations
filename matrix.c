@@ -852,17 +852,16 @@ typedef struct {
     Vector* means;
     Vector* stds;
     int col_idx;
-} ColumnNormalizeData2;
+} ColumnNormalizeData9;
 
 void* normalize_column(void* data) {
-    ColumnNormalizeData2* d = (ColumnNormalizeData2*) data;
+    ColumnNormalizeData9* d = (ColumnNormalizeData9*) data;
     Matrix* M = d->M;
     Vector* means = d->means;
     Vector* stds = d->stds;
     int col_idx = d->col_idx;
 
-    for (int i = 0; i < M->rows; ++i)
-    {
+    for (int i = 0; i < M->rows; ++i) {
         double x = M->elements[i][col_idx];
         double u = means->elements[col_idx];
         double r = stds->elements[col_idx];
@@ -877,27 +876,23 @@ Matrix* normalize_matrix_parallel_2(Matrix* M) {
     Vector* stds=matrix_col_std_parallel(M);
     int num_cols = M->cols;
     pthread_t threads[num_cols];
-    ColumnNormalizeData2 thread_data[num_cols];
+    ColumnNormalizeData9 thread_data[num_cols];
 
-    for (int i = 0; i < num_cols; ++i)
-    {
+    for (int i = 0; i < num_cols; ++i) {
         thread_data[i].M = M;
         thread_data[i].means = means;
         thread_data[i].stds = stds;
         thread_data[i].col_idx = i;
-        int result = pthread_create(&threads[i], NULL, normalize_column, (void *)&thread_data[i]);
-        if (result != 0)
-        {
+        int result = pthread_create(&threads[i], NULL, normalize_column, (void*) &thread_data[i]);
+        if (result != 0) {
             fprintf(stderr, "Failed to create thread for column %d. Error code: %d\n", i, result);
             return NULL;
         }
     }
 
-    for (int i = 0; i < num_cols; ++i)
-    {
+    for (int i = 0; i < num_cols; ++i) {
         int result = pthread_join(threads[i], NULL);
-        if (result != 0)
-        {
+        if (result != 0) {
             fprintf(stderr, "Failed to join thread for column %d. Error code: %d\n", i, result);
             return NULL;
         }
