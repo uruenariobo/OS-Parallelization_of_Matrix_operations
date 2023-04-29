@@ -602,80 +602,6 @@ int min_max_by_columns(int rows, int cols, int num_threads) {
     return 0;
 }
 
-
-// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
-
-typedef struct {
-    struct Matrix* matrix;
-    Vector* min;
-    Vector* max;
-    int start_row;
-    int end_row;
-    pthread_mutex_t* lock;
-} ColumnNormalizeData;
-
-void normalize_matrix(Matrix* M, Vector* min, Vector* max){
-    for (int i = 0; i < M->rows; ++i) {
-        for (int j = 0; j < M->cols; ++j) {
-            M->elements[i][j] = (M->elements[i][j] - min->elements[j]) / (max->elements[j] - min->elements[j]);
-        }
-    }
-
-    print_matrix(M);
-}  
-
-void* normalize(void* args) {
-    ColumnNormalizeData* args_cnd = (ColumnNormalizeData*) args;
-    for (int i = args_cnd->start_row; i < args_cnd->end_row; ++i) {
-        for (int j = 0; j < args_cnd->matrix->cols; ++j) {
-            pthread_mutex_lock(args_cnd->lock);
-            args_cnd->matrix->elements[i][j] = (args_cnd->matrix->elements[i][j] - args_cnd->min->elements[j]) / (args_cnd->max->elements[j] - args_cnd->min->elements[j]);
-            pthread_mutex_unlock(args_cnd->lock);
-        }
-    }
-
-    return NULL;
-}
-
-void normalize_matrix_parallel(Matrix* matrix, Vector* min, Vector* max, int n) {
-
-    pthread_mutex_t lock;
-    pthread_mutex_init(&lock, NULL);
-    pthread_t threads[n];
-
-    ColumnNormalizeData args[n];
-
-    int pthread_size = matrix->rows / n;
-    int extra_rows = matrix->rows % n;
-    
-    for (int i = 0; i < n; ++i) {
-        args[i].matrix = matrix;
-        args[i].min = min;
-        args[i].max = max;
-        args[i].lock = &lock;
-
-        int start_row = i * pthread_size;
-        int end_row = (i + 1) * pthread_size;
-
-        if (i == n - 1) {
-            end_row += extra_rows;
-        }
-        args[i].start_row = start_row;
-        args[i].end_row = end_row;
-
-        pthread_create(&threads[i], NULL, normalize, &args[i]);
-    }
-
-    for (int i = 0; i < n; ++i) {
-        pthread_join(threads[i], NULL);
-    }
-
-    pthread_mutex_destroy(&lock);
-    print_matrix(matrix);
-    free_matrix(matrix);
-}
-
-  
 //5. Calcular la suma de dos matrices
 typedef struct ThreadArgsMatrixSum ThreadArgsMatrixSum;
 struct ThreadArgsMatrixSum
@@ -823,12 +749,84 @@ void scalar_matrix_parallel(Matrix *M, double k)
     }
 }
 
+// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
+
+typedef struct {
+    struct Matrix* matrix;
+    Vector* min;
+    Vector* max;
+    int start_row;
+    int end_row;
+    pthread_mutex_t* lock;
+} ColumnNormalizeData;
+
+void normalize_matrix(Matrix* M, Vector* min, Vector* max){
+    for (int i = 0; i < M->rows; ++i) {
+        for (int j = 0; j < M->cols; ++j) {
+            M->elements[i][j] = (M->elements[i][j] - min->elements[j]) / (max->elements[j] - min->elements[j]);
+        }
+    }
+
+    print_matrix(M);
+}  
+
+void* normalize(void* args) {
+    ColumnNormalizeData* args_cnd = (ColumnNormalizeData*) args;
+    for (int i = args_cnd->start_row; i < args_cnd->end_row; ++i) {
+        for (int j = 0; j < args_cnd->matrix->cols; ++j) {
+            pthread_mutex_lock(args_cnd->lock);
+            args_cnd->matrix->elements[i][j] = (args_cnd->matrix->elements[i][j] - args_cnd->min->elements[j]) / (args_cnd->max->elements[j] - args_cnd->min->elements[j]);
+            pthread_mutex_unlock(args_cnd->lock);
+        }
+    }
+
+    return NULL;
+}
+
+void normalize_matrix_parallel(Matrix* matrix, Vector* min, Vector* max, int n) {
+
+    pthread_mutex_t lock;
+    pthread_mutex_init(&lock, NULL);
+    pthread_t threads[n];
+
+    ColumnNormalizeData args[n];
+
+    int pthread_size = matrix->rows / n;
+    int extra_rows = matrix->rows % n;
+    
+    for (int i = 0; i < n; ++i) {
+        args[i].matrix = matrix;
+        args[i].min = min;
+        args[i].max = max;
+        args[i].lock = &lock;
+
+        int start_row = i * pthread_size;
+        int end_row = (i + 1) * pthread_size;
+
+        if (i == n - 1) {
+            end_row += extra_rows;
+        }
+        args[i].start_row = start_row;
+        args[i].end_row = end_row;
+
+        pthread_create(&threads[i], NULL, normalize, &args[i]);
+    }
+
+    for (int i = 0; i < n; ++i) {
+        pthread_join(threads[i], NULL);
+    }
+
+    pthread_mutex_destroy(&lock);
+    print_matrix(matrix);
+    free_matrix(matrix);
+}
+
+
 //9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-Matrix *normalize_matrix2(const Matrix *M)
-{
-    Matrix *result = create_matrix(M->rows, M->cols);
-    Vector *means = matrix_col_mean(M);
-    Vector *stds = matrix_col_std(M);
+Matrix* normalize_matrix_2(const Matrix* M) {
+    Matrix* result = create_matrix(M->rows, M->cols);
+    Vector* means = matrix_col_mean(M);
+    Vector* stds = matrix_col_std(M);
 
     for (int j = 0; j < M->cols; ++j)
     {
@@ -848,23 +846,19 @@ Matrix *normalize_matrix2(const Matrix *M)
     return result;
 }
 
-  
-typedef struct
-{
-    Matrix *M;
-    Vector *means;
-    Vector *stds;
+
+typedef struct {
+    Matrix* M;
+    Vector* means;
+    Vector* stds;
     int col_idx;
 } ColumnNormalizeData2;
 
-  
-void *normalize_column(void *data)
-{
-    ColumnNormalizeData2 *d = (ColumnNormalizeData2 *)data;
-    Matrix *M = d->M;
-    Vector *means = d->means;
-    Vector *stds = d->stds;
-  
+void* normalize_column(void* data) {
+    ColumnNormalizeData2* d = (ColumnNormalizeData2*) data;
+    Matrix* M = d->M;
+    Vector* means = d->means;
+    Vector* stds = d->stds;
     int col_idx = d->col_idx;
 
     for (int i = 0; i < M->rows; ++i)
@@ -878,11 +872,9 @@ void *normalize_column(void *data)
     pthread_exit(NULL);
 }
 
-
-Matrix *normalize_matrix_parallel2(Matrix *M)
-{
-    Vector *means = matrix_col_mean_parallel(M);
-    Vector *stds = matrix_col_std_parallel(M);
+Matrix* normalize_matrix_parallel_2(Matrix* M) {
+    Vector* means=matrix_col_mean_parallel(M);
+    Vector* stds=matrix_col_std_parallel(M);
     int num_cols = M->cols;
     pthread_t threads[num_cols];
     ColumnNormalizeData2 thread_data[num_cols];
