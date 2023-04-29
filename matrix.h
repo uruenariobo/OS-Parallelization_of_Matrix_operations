@@ -88,7 +88,4 @@ void normalize_matrix_parallel(Matrix* matrix, Vector* max, Vector* min, int n);
 Matrix* normalize_matrix_2(const Matrix* M);
 Matrix* normalize_matrix_parallel_2(Matrix* matrix);
 
-Matrix *normalize_matrix(const Matrix *M);
-Matrix *normalize_matrix_parallel(Matrix *matrix);
-
 #endif

@@ -26,7 +26,7 @@ int main()
 
 	// 1. Calcula la media de cada columna de la matriz y almacena los resultados en el vector creado, se muestra el tiempo de forma secuencial y paralela.
 	//Comienza ejecución secuencial
-	printf("\nMedia de cada columna de una matriz:\n");
+	printf("\n1. Media de cada columna de una matriz:\n");
 	start = clock();
 	Vector *col_means = matrix_col_mean(M);
 	end = clock();
@@ -45,7 +45,7 @@ int main()
 	print_vector(col_means);
 
 	// 2. Calcula la varianza de cada columna de la matriz y almacena los resultados en el vector creado, se muestra el tiempo de forma secuencial y paralela.
-	printf("\nVarianza de cada columna de una matriz:\n");
+	printf("\n2. Varianza de cada columna de una matriz:\n");
 	//Comienza ejecución secuencial
 	start = clock();
 	Vector *variances = matrix_col_vrz(M);
@@ -64,7 +64,7 @@ int main()
 	print_vector(variances);
 
 	//3. Calcular la desviacion estandar de cada columna de una matriz
-	printf("\nDesviacion estandar de cada columna de una matriz:\n");
+	printf("\n3. Desviacion estandar de cada columna de una matriz:\n");
 	//Comienza ejecución secuencial
 	start = clock();
 	Vector *std = matrix_col_std(M);
@@ -83,7 +83,7 @@ int main()
 	print_vector(std);
 
 	//4. Calcular el valor mínimo y el valor máximo de cada columna de una matriz
-	printf("\nCalcular el valor mínimo y el valor máximo de cada columna de una matriz\n");
+	printf("\n4. Calcular el valor mínimo y el valor máximo de cada columna de una matriz\n");
 
 	printf("\nEjecución secuencial:\n");
 	start = clock();
@@ -101,31 +101,8 @@ int main()
 	printf("\nTiempo paralelo:\n");
 	printf("%f\n", cpu_time_used_parallel);
 
-	// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
-	printf("\nNormalizar una matriz con los valores max y min:\n");
-    Vector* max_numbers = matrix_col_max(M);
-    Vector* min_numbers = matrix_col_min(M);
-
-	printf("\nEjecución secuencial:\n");
-	start = clock();
-	Matrix* normalize_max_min = M;
-    normalize_matrix(normalize_max_min, min_numbers, max_numbers);
-	end = clock();
-	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
-	printf("\nTiempo secuencial:\n");
-	printf("%f\n", cpu_time_used_parallel);
-
-	printf("\nEjecución paralela:\n");
-	start = clock();
-	Matrix* normalize_max_min2 = M;
-    normalize_matrix_parallel(normalize_max_min2, min_numbers ,max_numbers, 4);
-	end = clock();
-	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
-	printf("\nTiempo paralelo:\n");
-	printf("%f\n", cpu_time_used_parallel);
-
 	//5. Calcular la suma de dos matrices
-	printf("\nSuma de dos matrices:\n");
+	printf("\n5. Suma de dos matrices:\n");
 	Matrix *Matrix1 = create_matrix(4, 4);
 	init_matrix_rand(Matrix1);
 
@@ -149,7 +126,7 @@ int main()
 
 
 	//7. Calcular la multiplicación de una matriz por un escalar
-	printf("\nMultiplicar de una matriz por un escalar:\n");
+	printf("\n7. Multiplicar de una matriz por un escalar:\n");
 	Matrix *Matrix2 = create_matrix(12, 4);
 	init_matrix_rand(Matrix2);
 
@@ -171,12 +148,34 @@ int main()
 	printf("%f\n", cpu_time_used_parallel);
 	print_matrix(Matrix2);
 
+	// 8. Normalizar una matriz columna por columna x´ = (x - x(min) / (x(max) - x(min)))
+	printf("\n8. Normalizar una matriz con los valores max y min:\n");
+    Vector* max_numbers = matrix_col_max(M);
+    Vector* min_numbers = matrix_col_min(M);
+
+	printf("\nEjecución secuencial:\n");
+	start = clock();
+	Matrix* normalize_max_min = M;
+    normalize_matrix(normalize_max_min, min_numbers, max_numbers);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo secuencial:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
+	printf("\nEjecución paralela:\n");
+	start = clock();
+	Matrix* normalize_max_min2 = M;
+    normalize_matrix_parallel(normalize_max_min2, min_numbers ,max_numbers, 4);
+	end = clock();
+	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("\nTiempo paralelo:\n");
+	printf("%f\n", cpu_time_used_parallel);
+
 	//9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-	printf("\nNormalizar una matriz columna por columna:\n");
+	printf("\n9. Normalizar una matriz columna por columna:\n");
 	//Comienza ejecución secuencial
 	start = clock();
-	Matrix* normal = normalize_matrix_2(M);
-	Matrix *normal = normalize_matrix(M);
+	Matrix* normal = normalize_matrix2(M);
 	end = clock();
 	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
 	//Imprime el tiempo de ejecución secuencial en segundos
@@ -184,7 +183,7 @@ int main()
 
 	//Comienza ejecución paralela
 	start = clock();
-	normal = normalize_matrix_parallel_2(M);
+	normal = normalize_matrix_parallel2(M);
 	end = clock();
 	cpu_time_used_parallel = ((double)(end - start)) / CLOCKS_PER_SEC;
 	//Imprime el tiempo de ejecución paralela en segundos

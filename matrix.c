@@ -675,13 +675,6 @@ void normalize_matrix_parallel(Matrix* matrix, Vector* min, Vector* max, int n) 
     free_matrix(matrix);
 }
 
-
-
-//9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-Matrix* normalize_matrix_2(const Matrix* M) {
-    Matrix* result = create_matrix(M->rows, M->cols);
-    Vector* means = matrix_col_mean(M);
-    Vector* stds = matrix_col_std(M);
   
 //5. Calcular la suma de dos matrices
 typedef struct ThreadArgsMatrixSum ThreadArgsMatrixSum;
@@ -831,7 +824,7 @@ void scalar_matrix_parallel(Matrix *M, double k)
 }
 
 //9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.
-Matrix *normalize_matrix(const Matrix *M)
+Matrix *normalize_matrix2(const Matrix *M)
 {
     Matrix *result = create_matrix(M->rows, M->cols);
     Vector *means = matrix_col_mean(M);
@@ -855,11 +848,6 @@ Matrix *normalize_matrix(const Matrix *M)
     return result;
 }
 
-
-typedef struct {
-    Matrix* M;
-    Vector* means;
-    Vector* stds;
   
 typedef struct
 {
@@ -869,15 +857,10 @@ typedef struct
     int col_idx;
 } ColumnNormalizeData2;
 
-void* normalize_column(void* data) {
-    ColumnNormalizeData2* d = (ColumnNormalizeData2*) data;
-    Matrix* M = d->M;
-    Vector* means = d->means;
-    Vector* stds = d->stds;
   
 void *normalize_column(void *data)
 {
-    ColumnNormalizeData *d = (ColumnNormalizeData *)data;
+    ColumnNormalizeData2 *d = (ColumnNormalizeData2 *)data;
     Matrix *M = d->M;
     Vector *means = d->means;
     Vector *stds = d->stds;
@@ -896,10 +879,7 @@ void *normalize_column(void *data)
 }
 
 
-Matrix* normalize_matrix_parallel_2(Matrix* M) {
-    Vector* means=matrix_col_mean_parallel(M);
-    Vector* stds=matrix_col_std_parallel(M);
-Matrix *normalize_matrix_parallel(Matrix *M)
+Matrix *normalize_matrix_parallel2(Matrix *M)
 {
     Vector *means = matrix_col_mean_parallel(M);
     Vector *stds = matrix_col_std_parallel(M);
