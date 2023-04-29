@@ -67,7 +67,7 @@ void min_max_parallel(Matrix* matrix, int num_threads);
 int min_max_by_columns(int rows, int cols, int num_threads);
 
 //8. Normalizar una matriz columna por columna con el valor minimo y maximo
-void* normalize_matrix(void* cnd);
+void normalize_matrix(Matrix* M, Vector* min, Vector* max);
 void normalize_matrix_parallel(Matrix* matrix, Vector* max, Vector* min, int n);
 
 //9. Normalizar una matriz columna por columna de acuerdo con la siguiente formula: x'=(x-u)/r, donde x’ es el nuevo valor que tomara cada elemento de la matriz, u es la media de cada columna y r es la desviacion estandar de cada columna.

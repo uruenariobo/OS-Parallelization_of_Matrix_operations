@@ -566,13 +566,23 @@ typedef struct {
     pthread_mutex_t* lock;
 } ColumnNormalizeData;
 
-void* normalize_matrix(void* cnd) {
-   ColumnNormalizeData* args = (ColumnNormalizeData*) cnd;
-    for (int i = args->start_row; i < args->end_row; ++i) {
-        for (int j = 0; j < args->matrix->cols; ++j) {
-            pthread_mutex_lock(args->lock);
-            args->matrix->elements[i][j] = (args->matrix->elements[i][j] - args->min->elements[j]) / (args->max->elements[j] - args->min->elements[j]);
-            pthread_mutex_unlock(args->lock);
+void normalize_matrix(Matrix* M, Vector* min, Vector* max){
+    for (int i = 0; i < M->rows; ++i) {
+        for (int j = 0; j < M->cols; ++j) {
+            M->elements[i][j] = (M->elements[i][j] - min->elements[j]) / (max->elements[j] - min->elements[j]);
+        }
+    }
+
+    print_matrix(M);
+}  
+
+void* normalize(void* args) {
+    ColumnNormalizeData* args_cnd = (ColumnNormalizeData*) args;
+    for (int i = args_cnd->start_row; i < args_cnd->end_row; ++i) {
+        for (int j = 0; j < args_cnd->matrix->cols; ++j) {
+            pthread_mutex_lock(args_cnd->lock);
+            args_cnd->matrix->elements[i][j] = (args_cnd->matrix->elements[i][j] - args_cnd->min->elements[j]) / (args_cnd->max->elements[j] - args_cnd->min->elements[j]);
+            pthread_mutex_unlock(args_cnd->lock);
         }
     }
 
@@ -605,7 +615,7 @@ void normalize_matrix_parallel(Matrix* matrix, Vector* min, Vector* max, int n) 
         args[i].start_row = start_row;
         args[i].end_row = end_row;
 
-        pthread_create(&threads[i], NULL, normalize_matrix, &args[i]);
+        pthread_create(&threads[i], NULL, normalize, &args[i]);
     }
 
     for (int i = 0; i < n; ++i) {
